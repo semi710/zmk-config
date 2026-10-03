@@ -62,19 +62,9 @@
             bindings = <&kp>, <&kp>;
         };
 
-        // thumb: tap = gui, hold = hyper; gui,gui<hold> = held gui for cmd combos
-        gh: gui_hyper {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "balanced";
-            require-prior-idle-ms = <150>;
-            tapping-term-ms = <200>;
-            quick-tap-ms = <250>;
-            bindings = <&kp>, <&kp>;
-        };
-
-        // right thumb: tap = alt, hold = gui (mirror of the left thumb)
-        ga: alt_gui {
+        // thumb hold-tap: first param = hold, second = tap.
+        // tap,tap<hold> within quick-tap-ms auto-repeats the tap.
+        th: tap_hold {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "balanced";
@@ -96,13 +86,13 @@
             // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BSPC |
             // | ⎋/HYP | A:SFT | S:CTRL | D:ALT | F:GUI | G |   | H | J:GUI | K:ALT | L:CTRL | ;:SFT | ' |
             // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-            //                    | GUI/HYP | LWR | SPC |   | ENT | RSE  | A/GUI |
+            //                    |  GUI  | LWR | SPC/HYP |   | ENT/HYP | RSE  | A/GUI |
 
             bindings = <
 &kp TAB    &kp Q  &kp W       &kp E        &kp R         &kp T     &kp Y    &kp U          &kp I         &kp O         &kp P       &kp BSPC
 &eh LG(LA(LCTRL)) ESC  &hml LSHIFT A  &hml LCTRL S  &hml LALT D  &hml LGUI F  &kp G    &kp H  &hmr RGUI J  &hmr RALT K  &hmr RCTRL L  &hmr RSHIFT SEMI  &kp SQT
 &kp LSHFT  &kp Z  &kp X      &kp C        &kp V         &kp B     &kp N    &kp M          &kp COMMA     &kp DOT       &kp FSLH    &kp ESC
-                         &gh LG(LA(LCTRL)) LGUI  &mo 1  &kp SPACE    &kp RET  &mo 2  &ga LGUI LALT
+                         &kp LGUI  &mo 1  &th LG(LA(LCTRL)) SPACE    &th LG(LA(LCTRL)) RET  &mo 2  &th LGUI LALT
             >;
         };
 
