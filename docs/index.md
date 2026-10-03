@@ -14,9 +14,10 @@ keyboards plug in without touching the build logic.
 ## Build
 
 ```bash
-nix build .#corne           # firmware lands in result/zmk_{left,right}.uf2
-nix run .#flash-corne        # interactive flash (Linux, copies uf2 to the mounted controller)
-nix run .#update             # bump west deps, prints the new zephyrDepsHash
+nix build github:semi710/zmk-config        # default keyboard -> result/zmk_{left,right}.uf2
+nix build github:semi710/zmk-config#corne  # explicit keyboard
+nix run github:semi710/zmk-config#flash-corne  # interactive flash (Linux, copies uf2 to the mounted controller)
+nix run github:semi710/zmk-config#update   # bump west deps, prints the new zephyrDepsHash
 ```
 
 CI builds every keyboard on push and publishes the uf2s as the `firmware`
