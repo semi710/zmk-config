@@ -9,21 +9,22 @@ with [ZMK](https://zmk.dev) pinned to `v0.3`.
       ┌─────── OLED 128x32 ───────┐      ┌─────── OLED 128x32 ───────┐
       │ cat·bt·batt·mods·dots·key │      │      cat·batt·link        │
       └───────────────────────────┘      └───────────────────────────┘
-        ┌───┬───┬───┬───┬───┬───┐          ┌───┬───┬───┬───┬───┬───┐
-        │   │   │   │   │   │   │          │   │   │   │   │   │   │
-       ┌┼───┼───┼───┼───┼───┼───┐        ┌─┼───┼───┼───┼───┼───┼───┼┐
-       ││   │   │   │   │   │   │        │   │   │   │   │   │   ││
-       └┼───┼───┼───┼───┼───┼───┤        ├───┼───┼───┼───┼───┼───┼┘
-        │   │   │   │   │   │   │          │   │   │   │   │   │   │
-        └───┴───┴───┴───┴───┴───┘          └───┴───┴───┴───┴───┴───┘
-              ┌───┬───┬───┐                  ┌───┬───┬───┐
-              │   │   │   │                  │   │   │   │
-              └───┴───┴───┘                  └───┴───┴───┘
-          nice!nano v2                      nice!nano v2
-           (central)                        (peripheral)
+      ┌───┬───┬───┬───┬───┬───┐          ┌───┬───┬───┬───┬───┬───┐
+      │   │   │   │   │   │   │          │   │   │   │   │   │   │
+      │   │   │   │   │   │   │          │   │   │   │   │   │   │
+      │   │   │   │   │   │   │          │   │   │   │   │   │   │
+      └───┴───┴───┴───┴───┴───┘          └───┴───┴───┴───┴───┴───┘
+        ┌───┬───┬───┐                      ┌───┬───┬───┐
+        │   │   │   │                      │   │   │   │
+        └───┴───┴───┘                      └───┴───┴───┘
+      nice!nano v2                        nice!nano v2
+       (central)                          (peripheral)
 ```
 
-- 3x6 column-staggered keys + 3-key thumb arc per half
+- 3x6 keys + 3-key thumb arc per half; columns run straight - Tab sits
+  directly above the esc/hyper key. The stagger is vertical only: outer
+  columns sit ~0.3u lower than the middle (like finger lengths), never
+  sideways
 - Each half runs its own nice!nano v2 with a LiPo cell - the halves talk to
   each other over BLE (the TRRS jack is unused in this wireless build), and
   the left half (central) resolves all keymap behavior
