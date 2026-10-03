@@ -57,7 +57,7 @@ with [ZMK](https://zmk.dev) pinned to `v0.3`.
 │SHFT │  Z  │  X  │  C  │  V  │  B  │   │  N  │  M  │  ,  │  .  │  /  │ ESC │
 └─────┴─────┴─────┴─────┴─────┴─────┘   └─────┴─────┴─────┴─────┴─────┴─────┘
                ┌─────┬─────┬─────┐   ┌─────┬─────┬─────┐
-               │ GUI │ LWR │SPC/H│   │ENT/H│ RSE │A/HYP│
+               │ GUI │ LWR │SPC/H│   │ENT/H│ RSE │A/GUI│
                └─────┴─────┴─────┘   └─────┴─────┴─────┘
 ```
 
@@ -65,10 +65,11 @@ with [ZMK](https://zmk.dev) pinned to `v0.3`.
 
 The left outer thumb is a plain `Gui` - always Cmd, no hold-tap latency.
 
-`SPC/H`, `ENT/H` and `A/H` = tap sends Space / Return / Alt, hold acts as
-Hyper. `space, space<hold>` auto-repeats space, `enter, enter<hold>`
-auto-repeats enter; a lone hold past the tapping term fires Hyper
-(Cmd+Alt+Ctrl) for app shortcuts and window management.
+`SPC/H` and `ENT/H` = tap sends Space / Return, hold acts as Hyper.
+`space, space<hold>` auto-repeats space, `enter, enter<hold>` auto-repeats
+enter; a lone hold past the tapping term fires Hyper (Cmd+Alt+Ctrl) for app
+shortcuts and window management. `A/GUI` mirrors it on the right: tap sends
+`Alt`, hold acts as `Gui`.
 
 Double-tap-hold: tap a hold-tap key, then press it again within 250 ms
 (`quick-tap-ms`) and hold - the tap fires immediately and auto-repeats.

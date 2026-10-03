@@ -86,13 +86,13 @@
             // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BSPC |
             // | ⎋/HYP | A:SFT | S:CTRL | D:ALT | F:GUI | G |   | H | J:GUI | K:ALT | L:CTRL | ;:SFT | ' |
             // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-            //                    |  GUI  | LWR | SPC/HYP |   | ENT/HYP | RSE  | A/HYP |
+            //                    |  GUI  | LWR | SPC/HYP |   | ENT/HYP | RSE  | A/GUI |
 
             bindings = <
 &kp TAB    &kp Q  &kp W       &kp E        &kp R         &kp T     &kp Y    &kp U          &kp I         &kp O         &kp P       &kp BSPC
 &eh LG(LA(LCTRL)) ESC  &hml LSHIFT A  &hml LCTRL S  &hml LALT D  &hml LGUI F  &kp G    &kp H  &hmr RGUI J  &hmr RALT K  &hmr RCTRL L  &hmr RSHIFT SEMI  &kp SQT
 &kp LSHFT  &kp Z  &kp X      &kp C        &kp V         &kp B     &kp N    &kp M          &kp COMMA     &kp DOT       &kp FSLH    &kp ESC
-                         &kp LGUI  &mo 1  &th LG(LA(LCTRL)) SPACE    &th LG(LA(LCTRL)) RET  &mo 2  &th LG(LA(LCTRL)) LALT
+                         &kp LGUI  &mo 1  &th LG(LA(LCTRL)) SPACE    &th LG(LA(LCTRL)) RET  &mo 2  &th LGUI LALT
             >;
         };
 
