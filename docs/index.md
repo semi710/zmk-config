@@ -21,7 +21,14 @@ nix run github:semi710/zmk-config#update   # bump west deps, prints the new zeph
 ```
 
 CI builds every keyboard on push and publishes the uf2s as the `firmware`
-artifact. The flake also exposes `flakeModules.default` so other flakes can
+artifact and as the rolling `latest` release - every push leaves a
+downloadable firmware. `v*` tags cut versioned releases.
+
+```bash
+gh release download latest -R semi710/zmk-config    # newest firmware
+```
+
+The flake also exposes `flakeModules.default` so other flakes can
 consume the keyboards as packages - see the [Flake Module](module.md) page.
 
 ## Consume from another flake

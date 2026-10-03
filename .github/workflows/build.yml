@@ -57,9 +57,9 @@ jobs:
           pattern: firmware-*
           delete-merged: true
 
-  # fires on tag pushes (v*): attaches the firmware + checksums to a release
+  # every main push refreshes the rolling `latest` release so the firmware is
+  # always downloadable; v* tag pushes cut a versioned release instead
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
     needs: [build, merge]
     runs-on: ubuntu-latest
     permissions:
@@ -77,7 +77,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "${GITHUB_REF_NAME}" firmware/*.uf2 firmware/checksums.txt --title "${GITHUB_REF_NAME}" --generate-notes
+        run: |
+          if [[ "$GITHUB_REF_NAME" == v* ]]; then
+            gh release create "$GITHUB_REF_NAME" firmware/*.uf2 firmware/checksums.txt \
+              --title "$GITHUB_REF_NAME" --generate-notes
+          else
+            gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+            gh release create latest firmware/*.uf2 firmware/checksums.txt \
+              --title "latest" --prerelease --target "$GITHUB_SHA" \
+              --notes "Rolling firmware from ${GITHUB_SHA::7}"
+          fi
 
   check:
     runs-on: ubuntu-latest
