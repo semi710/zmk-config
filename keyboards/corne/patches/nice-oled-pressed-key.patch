@@ -1,0 +1,196 @@
+--- a/boards/shields/nice_oled/widgets/util.h
++++ b/boards/shields/nice_oled/widgets/util.h
+@@ -41,6 +41,8 @@
+     bool active_profile_bonded;
+     uint8_t layer_index;
+     const char *layer_label;
++    char pressed_keys[9];
++    uint8_t pressed_key_len;
+     uint8_t wpm[10];
+ #ifdef CONFIG_NICE_OLED_WIDGET_RAW_HID
+     bool is_connected;
+--- a/boards/shields/nice_oled/widgets/layer.c
++++ b/boards/shields/nice_oled/widgets/layer.c
+@@ -10,14 +10,8 @@
+     init_label_dsc(&label_dsc, LVGL_FOREGROUND, &pixel_operator_mono_16, LV_TEXT_ALIGN_LEFT);
+ #endif // CONFIG_NICE_EPAPER_ON
+ 
+-    char text[10] = {};
+-
+-    if (state->layer_label == NULL) {
+-        sprintf(text, "Layer %i", state->layer_index);
+-    } else {
+-        strncpy(text, state->layer_label, 9);
+-        to_uppercase(text);
+-    }
++    char text[9] = {};
++    memcpy(text, state->pressed_keys, state->pressed_key_len);
+ 
+ #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_RESPONSIVE_BONGO_CAT)
+     lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
+--- a/boards/shields/nice_oled/widgets/screen.c
++++ b/boards/shields/nice_oled/widgets/screen.c
+@@ -1039,6 +1039,155 @@
+ #endif
+ 
+ /**
++ * Pressed key display - rolling history, left-aligned clear of the cat overlay;
++ * the dots keep the layer duty. The line clears after a sequence timeout.
++ **/
++#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_LAYER)
++#include <zmk/events/keycode_state_changed.h>
++#include <dt-bindings/zmk/hid_usage_pages.h>
++#include <dt-bindings/zmk/modifiers.h>
++#include <string.h>
++
++#define PRESSED_KEY_HISTORY_LEN 8
++#define PRESSED_KEY_SEQ_TIMEOUT_MS 2000
++
++struct pressed_key_state {
++    char buf[PRESSED_KEY_HISTORY_LEN + 1];
++    uint8_t len;
++};
++
++static uint8_t pressed_key_held_mods = 0;
++static char pressed_key_history[PRESSED_KEY_HISTORY_LEN];
++static uint8_t pressed_key_history_len = 0;
++
++// defined by ZMK_DISPLAY_WIDGET_LISTENER below; locked so the timeout clear
++// cannot race the event-side history append
++extern struct k_mutex widget_pressed_key_mutex;
++
++static char pressed_key_usage_to_char(uint32_t usage, bool shift) {
++    if (usage >= 0x04 && usage <= 0x1D) { // a-z
++        char c = 'a' + (usage - 0x04);
++        return shift ? (c - ('a' - 'A')) : c;
++    }
++    if (usage >= 0x1E && usage <= 0x27) { // 1-0
++        static const char lo[] = "1234567890";
++        static const char hi[] = "!@#$%^&*()";
++        return shift ? hi[usage - 0x1E] : lo[usage - 0x1E];
++    }
++    if (!shift) {
++        switch (usage) {
++        case 0x2D: return '-';
++        case 0x2E: return '=';
++        case 0x2F: return '[';
++        case 0x30: return ']';
++        case 0x31: return '\\';
++        case 0x33: return ';';
++        case 0x34: return '\'';
++        case 0x35: return '`';
++        case 0x36: return ',';
++        case 0x37: return '.';
++        case 0x38: return '/';
++        default: return 0;
++        }
++    }
++    switch (usage) {
++    case 0x2D: return '_';
++    case 0x2E: return '+';
++    case 0x2F: return '{';
++    case 0x30: return '}';
++    case 0x31: return '|';
++    case 0x33: return ':';
++    case 0x34: return '"';
++    case 0x35: return '~';
++    case 0x36: return '<';
++    case 0x37: return '>';
++    case 0x38: return '?';
++    default: return 0;
++    }
++}
++
++static void pressed_key_apply(struct zmk_widget_screen *widget,
++                              const struct pressed_key_state *state) {
++    if (widget->state.pressed_key_len == state->len &&
++        memcmp(widget->state.pressed_keys, state->buf, state->len) == 0) {
++        return;
++    }
++    memcpy(widget->state.pressed_keys, state->buf, state->len);
++    widget->state.pressed_key_len = state->len;
++    draw_canvas(widget->obj, widget->cbuf, &widget->state);
++}
++
++static void pressed_key_update_cb(struct pressed_key_state state) {
++    struct zmk_widget_screen *widget;
++    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { pressed_key_apply(widget, &state); }
++}
++
++static void pressed_key_clear_handler(struct k_work *work) {
++    k_mutex_lock(&widget_pressed_key_mutex, K_FOREVER);
++    pressed_key_history_len = 0;
++    k_mutex_unlock(&widget_pressed_key_mutex);
++
++    struct zmk_widget_screen *widget;
++    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) {
++        if (widget->state.pressed_key_len != 0) {
++            widget->state.pressed_key_len = 0;
++            draw_canvas(widget->obj, widget->cbuf, &widget->state);
++        }
++    }
++}
++
++K_WORK_DELAYABLE_DEFINE(pressed_key_clear_work, pressed_key_clear_handler);
++
++static struct pressed_key_state pressed_key_get_state(const zmk_event_t *eh) {
++    const struct zmk_keycode_state_changed *ev = as_zmk_keycode_state_changed(eh);
++    struct pressed_key_state state = {.len = pressed_key_history_len};
++    memcpy(state.buf, pressed_key_history, pressed_key_history_len);
++
++    if (ev == NULL || ev->usage_page != HID_USAGE_KEY) {
++        return state;
++    }
++
++    if (ev->keycode >= 0xE0 && ev->keycode <= 0xE7) { // plain modifier presses
++        uint8_t bit = 1 << (ev->keycode - 0xE0);
++        if (ev->state) {
++            pressed_key_held_mods |= bit;
++        } else {
++            pressed_key_held_mods &= ~bit;
++        }
++        return state;
++    }
++
++    if (!ev->state) { // releases don't change the history
++        return state;
++    }
++
++    bool shift = (ev->implicit_modifiers | pressed_key_held_mods) & (MOD_LSFT | MOD_RSFT);
++    char ch = pressed_key_usage_to_char(ev->keycode, shift);
++    if (ch == 0) {
++        return state; // non-printables don't enter the history
++    }
++
++    if (pressed_key_history_len == PRESSED_KEY_HISTORY_LEN) {
++        memmove(pressed_key_history, pressed_key_history + 1, PRESSED_KEY_HISTORY_LEN - 1);
++        pressed_key_history_len--;
++    }
++    pressed_key_history[pressed_key_history_len++] = ch;
++
++    k_work_reschedule_for_queue(zmk_display_work_q(), &pressed_key_clear_work,
++                                K_MSEC(PRESSED_KEY_SEQ_TIMEOUT_MS));
++
++    state.len = pressed_key_history_len;
++    memcpy(state.buf, pressed_key_history, pressed_key_history_len);
++    return state;
++}
++
++ZMK_DISPLAY_WIDGET_LISTENER(widget_pressed_key, struct pressed_key_state, pressed_key_update_cb,
++                            pressed_key_get_state)
++
++ZMK_SUBSCRIPTION(widget_pressed_key, zmk_keycode_state_changed);
++#endif
++
++/**
+  * Output status
+  **/
+ 
+@@ -1123,6 +1272,7 @@
+ 
+ #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_LAYER)
+     widget_layer_status_init();
++    widget_pressed_key_init();
+ #endif
+     widget_output_status_init();
+ #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)

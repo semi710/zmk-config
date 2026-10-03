@@ -1,0 +1,36 @@
+--- a/boards/shields/nice_oled/widgets/profile.c
++++ b/boards/shields/nice_oled/widgets/profile.c
+@@ -17,18 +17,20 @@
+ #endif
+ 
+ #if !IS_ENABLED(CONFIG_NICE_OLED_WIDGET_PROFILE_BIG)
++static void hide_extra_dots(lv_obj_t *canvas); // defined after
+ static void draw_inactive_profiles(lv_obj_t *canvas, const struct status_state *state) {
+     lv_draw_img_dsc_t img_dsc;
+     lv_draw_img_dsc_init(&img_dsc);
+ 
+     lv_canvas_draw_img(canvas, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_X, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_Y, &profiles, &img_dsc);
++    hide_extra_dots(canvas);
+ }
+ 
+ static void draw_active_profile(lv_obj_t *canvas, const struct status_state *state) {
+     lv_draw_rect_dsc_t rect_white_dsc;
+     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
+ 
+-    int offset = state->active_profile_index * 7;
++    int offset = state->layer_index * 7;
+ 
+     lv_canvas_draw_rect(canvas, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_X + offset, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_Y, 3, 3, &rect_white_dsc);
+ }
+@@ -65,3 +67,11 @@
+     draw_active_profile(canvas, state);
+ #endif
+ }
++
++// Hide the 4th/5th dots so only the configured layer count shows - runs AFTER the strip is drawn
++static void hide_extra_dots(lv_obj_t *canvas) {
++    lv_draw_rect_dsc_t rect_bg_dsc;
++    init_rect_dsc(&rect_bg_dsc, LVGL_BACKGROUND);
++    // The 31px strip holds 5 dots of 7px each. Wipe slot 4 and 5 (x=21..31) after dot 3.
++    lv_canvas_draw_rect(canvas, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_X + 21, CONFIG_NICE_OLED_WIDGET_PROFILE_CUSTOM_Y - 1, 12, 5, &rect_bg_dsc);
++}

@@ -1,0 +1,141 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    combos {
+        compatible = "zmk,combos";
+
+        combo_studio_unlock {
+            timeout-ms = <50>;
+            key-positions = <0 1>;
+            bindings = <&studio_unlock>;
+        };
+    };
+};
+
+/ {
+    behaviors {
+        // homerow mods - hold = modifier, tap = letter (official "timeless HRM" recipe)
+        hml: home_row_mod_left {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            require-prior-idle-ms = <150>;
+            tapping-term-ms = <280>;
+            quick-tap-ms = <250>;
+            bindings = <&kp>, <&kp>;
+            // holds only fire when a right-half key is pressed (cross-hand)
+            hold-trigger-key-positions =
+                <6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35 39 40 41>;
+            hold-trigger-on-release;
+        };
+
+        hmr: home_row_mod_right {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            require-prior-idle-ms = <150>;
+            tapping-term-ms = <280>;
+            quick-tap-ms = <250>;
+            bindings = <&kp>, <&kp>;
+            // holds only fire when a left-half key is pressed (cross-hand)
+            hold-trigger-key-positions =
+                <0 1 2 3 4 5 12 13 14 15 16 17 24 25 26 27 28 29 36 37 38>;
+            hold-trigger-on-release;
+        };
+
+        // capslock-style: tap = esc, hold = hyper (gui+alt+ctrl)
+        eh: esc_hyper {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            require-prior-idle-ms = <150>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <250>;
+            bindings = <&kp>, <&kp>;
+        };
+
+        // thumb: tap = gui, hold = hyper; gui,gui<hold> = held gui for cmd combos
+        gh: gui_hyper {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            require-prior-idle-ms = <150>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <250>;
+            bindings = <&kp>, <&kp>;
+        };
+
+        // right thumb: tap = alt, hold = gui (mirror of the left thumb)
+        ga: alt_gui {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            require-prior-idle-ms = <150>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <250>;
+            bindings = <&kp>, <&kp>;
+        };
+    };
+};
+
+/ {
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            display-name = "Base";
+            // -----------------------------------------------------------------------------------------
+            // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BSPC |
+            // | ⎋/HYP | A:SFT | S:CTRL | D:ALT | F:GUI | G |   | H | J:GUI | K:ALT | L:CTRL | ;:SFT | ' |
+            // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
+            //                    | GUI/HYP | LWR | SPC |   | ENT | RSE  | A/GUI |
+
+            bindings = <
+&kp TAB    &kp Q  &kp W       &kp E        &kp R         &kp T     &kp Y    &kp U          &kp I         &kp O         &kp P       &kp BSPC
+&eh LG(LA(LCTRL)) ESC  &hml LSHIFT A  &hml LCTRL S  &hml LALT D  &hml LGUI F  &kp G    &kp H  &hmr RGUI J  &hmr RALT K  &hmr RCTRL L  &hmr RSHIFT SEMI  &kp SQT
+&kp LSHFT  &kp Z  &kp X      &kp C        &kp V         &kp B     &kp N    &kp M          &kp COMMA     &kp DOT       &kp FSLH    &kp ESC
+                         &gh LG(LA(LCTRL)) LGUI  &mo 1  &kp SPACE    &kp RET  &mo 2  &ga LGUI LALT
+            >;
+        };
+
+        lower_layer {
+            display-name = "Lower";
+            // -----------------------------------------------------------------------------------------
+            // |  TAB |  1  |  2  |  3  |  4  |  5  |   |  6  |  7  |  8  |  9  |  0  | BSPC |
+            // | BTCLR| BT1 | BT2 | BT3 | BT4 | BT5 |   | LFT | DWN |  UP | RGT |     |      |
+            // | SHFT |     |     |     |     |     |   |     |     |     |     |     |      |
+            //                    | GUI |     | SPC |   | ENT |     | ALT |
+
+            bindings = <
+&kp TAB     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5          &kp N6    &kp N7    &kp N8    &kp N9     &kp N0   &kp BSPC
+&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &kp LEFT  &kp DOWN  &kp UP    &kp RIGHT  &kp TAB  &trans
+&kp LSHFT   &trans        &trans        &trans        &trans        &trans          &trans    &trans    &trans    &trans     &trans   &trans
+                                        &kp LGUI      &trans        &kp SPACE       &kp RET   &trans    &kp RALT
+            >;
+        };
+
+        raise_layer {
+            display-name = "Raise";
+            // -----------------------------------------------------------------------------------------
+            // |  TAB |  !  |  @  |  #  |  $  |  %  |   |  ^  |  &  |  *  |  (  |  )  | BSPC |
+            // | CTRL |     |     |     |     |     |   |  -  |  =  |  [  |  ]  |  \  |  `   |
+            // | SHFT |     |     |     |     |     |   |  _  |  +  |  {  |  }  | "|" |  ~   |
+            //                    | GUI |     | SPC |   | ENT |     | ALT |
+
+            bindings = <
+&kp TAB    &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS   &kp ASTRK  &kp LPAR  &kp RPAR  &kp BSPC
+&kp LCTRL  &trans    &trans  &trans    &trans    &trans       &kp MINUS  &kp EQUAL  &kp LBKT   &kp RBKT  &kp BSLH  &kp GRAVE
+&kp LSHFT  &trans    &trans  &trans    &trans    &trans       &kp UNDER  &kp PLUS   &kp LBRC   &kp RBRC  &kp PIPE  &kp TILDE
+                             &kp LGUI  &trans    &kp SPACE    &kp RET    &trans     &kp RALT
+            >;
+        };
+    };
+};

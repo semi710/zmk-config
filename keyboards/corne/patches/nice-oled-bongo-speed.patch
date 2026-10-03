@@ -1,0 +1,25 @@
+--- a/boards/shields/nice_oled/widgets/bongo_cat.c
++++ b/boards/shields/nice_oled/widgets/bongo_cat.c
+@@ -66,19 +66,19 @@
+     &bongo_cat_double_tap1_06,
+ };
+ 
+-#define ANIMATION_SPEED_SLOW 2000
++#define ANIMATION_SPEED_SLOW 600
+ const lv_img_dsc_t *slow_imgs[] = {
+     &bongo_cat_tap1_03,
+     &bongo_cat_tap2_03,
+ };
+ 
+-#define ANIMATION_SPEED_MID 500
++#define ANIMATION_SPEED_MID 260
+ const lv_img_dsc_t *mid_imgs[] = {
+     &bongo_cat_tap1_03,
+     &bongo_cat_tap2_03,
+ };
+ 
+-#define ANIMATION_SPEED_FAST 200
++#define ANIMATION_SPEED_FAST 140
+ const lv_img_dsc_t *fast_imgs[] = {
+     &bongo_cat_double_tap2_02,
+     &bongo_cat_double_tap1_03,
