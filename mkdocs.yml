@@ -1,5 +1,5 @@
 site_name: zmk-config
-site_url: https://semi710.github.io/zmk-config
+site_url: https://zmk.semi.sh
 site_description: ZMK keyboard configs, built with nix
 site_author: Nikhil Singh
 repo_name: semi710/zmk-config

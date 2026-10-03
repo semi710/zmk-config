@@ -3,6 +3,35 @@
 42-key split keyboard on nice!nano v2 controllers with 128x32 OLEDs, built
 with [ZMK](https://zmk.dev) pinned to `v0.3`.
 
+## Board
+
+```
+      ┌─────── OLED 128x32 ───────┐      ┌─────── OLED 128x32 ───────┐
+      │ cat·bt·batt·mods·dots·key │      │      cat·batt·link        │
+      └───────────────────────────┘      └───────────────────────────┘
+        ┌───┬───┬───┬───┬───┬───┐          ┌───┬───┬───┬───┬───┬───┐
+        │   │   │   │   │   │   │          │   │   │   │   │   │   │
+       ┌┼───┼───┼───┼───┼───┼───┐        ┌─┼───┼───┼───┼───┼───┼───┼┐
+       ││   │   │   │   │   │   │        │   │   │   │   │   │   ││
+       └┼───┼───┼───┼───┼───┼───┤        ├───┼───┼───┼───┼───┼───┼┘
+        │   │   │   │   │   │   │          │   │   │   │   │   │   │
+        └───┴───┴───┴───┴───┴───┘          └───┴───┴───┴───┴───┴───┘
+              ┌───┬───┬───┐                  ┌───┬───┬───┐
+              │   │   │   │                  │   │   │   │
+              └───┴───┴───┘                  └───┴───┴───┘
+          nice!nano v2                      nice!nano v2
+           (central)                        (peripheral)
+```
+
+- 3x6 column-staggered keys + 3-key thumb arc per half
+- Each half runs its own nice!nano v2 with a LiPo cell - the halves talk to
+  each other over BLE (the TRRS jack is unused in this wireless build), and
+  the left half (central) resolves all keymap behavior
+- Double-tap the reset button on a half to expose the UF2 bootloader
+  (`NICENANO` volume) - copying an uf2 onto it flashes that half
+- Only the central (left) firmware changes with keymap edits; the peripheral
+  build is keymap-independent
+
 ## Structure
 
 | File | Purpose |
@@ -28,15 +57,18 @@ with [ZMK](https://zmk.dev) pinned to `v0.3`.
 │SHFT │  Z  │  X  │  C  │  V  │  B  │   │  N  │  M  │  ,  │  .  │  /  │ ESC │
 └─────┴─────┴─────┴─────┴─────┴─────┘   └─────┴─────┴─────┴─────┴─────┴─────┘
                ┌─────┬─────┬─────┐   ┌─────┬─────┬─────┐
-               │G/HYP│ LWR │ SPC │   │ ENT │ RSE │ ALT │
+               │ GUI │ LWR │SPC/H│   │ENT/H│ RSE │A/GUI│
                └─────┴─────┴─────┘   └─────┴─────┴─────┘
 ```
 
 `⎋/HYP` = tap sends `Esc`, hold acts as Hyper (Cmd+Alt+Ctrl) - the capslock pattern.
 
-`G/HYP` = tap sends `Gui`, hold acts as Hyper. A hold right after typing falls
-back to plain `Gui` (`require-prior-idle-ms`), and `G, G<hold>` holds `Gui`
-for Cmd combos.
+The left outer thumb is a plain `Gui` - always Cmd, no hold-tap latency.
+
+`SPC/H` and `ENT/H` = tap sends Space / Return, hold acts as Hyper.
+`space, space<hold>` auto-repeats space, `enter, enter<hold>` auto-repeats
+enter; a lone hold past the tapping term fires Hyper (Cmd+Alt+Ctrl) for app
+shortcuts and window management.
 
 Double-tap-hold: tap a hold-tap key, then press it again within 250 ms
 (`quick-tap-ms`) and hold - the tap fires immediately and auto-repeats.

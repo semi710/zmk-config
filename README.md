@@ -14,4 +14,4 @@ nix run github:semi710/zmk-config#flash-corne  # interactive flash (Linux)
 ```
 
 Consume from another flake via `flakeModules.default` - see the
-[docs](https://semi710.github.io/zmk-config).
+[docs](https://zmk.semi.sh).
